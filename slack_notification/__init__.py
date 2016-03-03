@@ -35,7 +35,7 @@ class SlackNotifcationPlugin(Component):
         values['author'] = re.sub(r' <.*', '', values['author'])
         # template = '%(project)s/%(branch)s %(rev)s %(author)s: %(logmsg)s'
         # template = '%(project)s %(rev)s %(author)s: %(logmsg)s'
-        template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s>: changed by @%(author)s '
+        template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s>: changed by @%(author)s'
         # template = '_%(project)s_ :incoming_envelope: \n%(type)s <%(url)s|%(id)s>: %(summary)s [*%(action)s* by @%(author)s]'
 
         if values['action'] == 'closed':
@@ -44,8 +44,8 @@ class SlackNotifcationPlugin(Component):
         if values['action'] == 'created':
             template += ' :pushpin:'
 
-        if values['description']:
-            template += ' \nDescription: ```%(description)s```'
+        # if values['description']:
+        #     template += ' \nDescription: ```%(description)s```'
 
         # if values['attrib']:
         #     template += '\n```%(attrib)s```'
@@ -54,7 +54,7 @@ class SlackNotifcationPlugin(Component):
         #     template += '\n:small_red_triangle: Changes: ```%(changes)s```'
 
         if values['comment']:
-            template += ' %(comment)s'
+            template += ': %(comment)s'
 
         message = template % values
         data = {
