@@ -1,4 +1,5 @@
 import json
+import string
 import requests
 import re
 from trac.core import Component, implements
@@ -17,6 +18,11 @@ def prepare_ticket_values(ticket, action=None):
     return values
 
 
+def truncate(value, n):
+    value = unicode(value)
+    return value if len(value) <= n - 3 else u'{0}...'.format(value[:n - 3])
+
+
 class SlackNotifcationPlugin(Component):
     implements(ITicketChangeListener)
     webhook = Option('slack', 'webhook', 'https://hooks.slack.com/services/', doc="Incoming webhook for slack")
@@ -29,7 +35,8 @@ class SlackNotifcationPlugin(Component):
         values['author'] = re.sub(r' <.*', '', values['author'])
         # template = '%(project)s/%(branch)s %(rev)s %(author)s: %(logmsg)s'
         # template = '%(project)s %(rev)s %(author)s: %(logmsg)s'
-        template = '_%(project)s_ :incoming_envelope: \n%(type)s <%(url)s|%(id)s>: %(summary)s [*%(action)s* by @%(author)s]'
+        template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s>: changed by @%(author)s '
+        # template = '_%(project)s_ :incoming_envelope: \n%(type)s <%(url)s|%(id)s>: %(summary)s [*%(action)s* by @%(author)s]'
 
         if values['action'] == 'closed':
             template += ' :white_check_mark:'
@@ -40,14 +47,14 @@ class SlackNotifcationPlugin(Component):
         if values['description']:
             template += ' \nDescription: ```%(description)s```'
 
-        if values['attrib']:
-            template += '\n```%(attrib)s```'
+        # if values['attrib']:
+        #     template += '\n```%(attrib)s```'
 
-        if values.get('changes', False):
-            template += '\n:small_red_triangle: Changes: ```%(changes)s```'
+        # if values.get('changes', False):
+        #     template += '\n:small_red_triangle: Changes: ```%(changes)s```'
 
         if values['comment']:
-            template += '\n>>>%(comment)s'
+            template += ' %(comment)s'
 
         message = template % values
         data = {
@@ -84,6 +91,7 @@ class SlackNotifcationPlugin(Component):
                 if ticket.values['status'] != old_values['status']:
                     action = ticket.values['status']
         values = prepare_ticket_values(ticket, action)
+        comment = truncate(next(iter(filter(bool, map(string.strip, comment.splitlines()))), ''), 100)
         values.update({
             'comment': comment or '',
             'author': author or '',
