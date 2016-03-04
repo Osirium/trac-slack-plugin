@@ -44,7 +44,7 @@ class SlackNotifcationPlugin(Component):
         values['author'] = re.sub(r' <.*', '', values['author'])
         # template = '%(project)s/%(branch)s %(rev)s %(author)s: %(logmsg)s'
         # template = '%(project)s %(rev)s %(author)s: %(logmsg)s'
-        template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s %(summary)>: %(action)s by @%(author)s'
+        template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s %(summary)s>: %(action)s by @%(author)s'
         # template = '_%(project)s_ :incoming_envelope: \n%(type)s <%(url)s|%(id)s>: %(summary)s [*%(action)s* by @%(author)s]'
 
         try:
