@@ -9,7 +9,6 @@ from trac.ticket.api import ITicketChangeListener
 
 def prepare_ticket_values(ticket, action=None):
     values = ticket.values.copy()
-    values['name'] = str(ticket.summary)
     values['id'] = "#" + str(ticket.id)
     values['action'] = action
     values['url'] = ticket.env.abs_href.ticket(ticket.id)
@@ -45,7 +44,7 @@ class SlackNotifcationPlugin(Component):
         values['author'] = re.sub(r' <.*', '', values['author'])
         # template = '%(project)s/%(branch)s %(rev)s %(author)s: %(logmsg)s'
         # template = '%(project)s %(rev)s %(author)s: %(logmsg)s'
-        template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s> %(name): %(action)s by @%(author)s'
+        template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s>: %(action)s by @%(author)s'
         # template = '_%(project)s_ :incoming_envelope: \n%(type)s <%(url)s|%(id)s>: %(summary)s [*%(action)s* by @%(author)s]'
 
         try:
