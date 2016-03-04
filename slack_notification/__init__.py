@@ -9,7 +9,7 @@ from trac.ticket.api import ITicketChangeListener
 
 def prepare_ticket_values(ticket, action=None):
     values = ticket.values.copy()
-    values['name'] = str(ticket.name)
+    values['name'] = str(ticket.summary)
     values['id'] = "#" + str(ticket.id)
     values['action'] = action
     values['url'] = ticket.env.abs_href.ticket(ticket.id)
