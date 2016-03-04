@@ -9,6 +9,7 @@ from trac.ticket.api import ITicketChangeListener
 
 def prepare_ticket_values(ticket, action=None):
     values = ticket.values.copy()
+    values['name'] = str(ticket.name)
     values['id'] = "#" + str(ticket.id)
     values['action'] = action
     values['url'] = ticket.env.abs_href.ticket(ticket.id)
@@ -44,7 +45,7 @@ class SlackNotifcationPlugin(Component):
         values['author'] = re.sub(r' <.*', '', values['author'])
         # template = '%(project)s/%(branch)s %(rev)s %(author)s: %(logmsg)s'
         # template = '%(project)s %(rev)s %(author)s: %(logmsg)s'
-        template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s>: %(action)s by @%(author)s'
+        template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s> %(name): %(action)s by @%(author)s'
         # template = '_%(project)s_ :incoming_envelope: \n%(type)s <%(url)s|%(id)s>: %(summary)s [*%(action)s* by @%(author)s]'
 
         try:
@@ -61,8 +62,8 @@ class SlackNotifcationPlugin(Component):
         # if values.get('changes', False):
         #     template += '\n:small_red_triangle: Changes: ```%(changes)s```'
 
-        # if values['comment']:
-        #    template += ': %(comment)s'
+        if values['comment']:
+           template += ': %(comment)s'
 
         message = template % values
         data = {
