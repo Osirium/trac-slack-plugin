@@ -18,9 +18,10 @@ def prepare_ticket_values(ticket, action=None):
     return values
 
 
+CONT = ' _etc._'
 def truncate(value, n):
     value = unicode(value)
-    return value if len(value) <= n - 3 else u'{0}...'.format(value[:n - 3])
+    return value if len(value) <= n else (value[:n - len(CONT)] + CONT)
 
 
 class SlackNotifcationPlugin(Component):
@@ -41,17 +42,19 @@ class SlackNotifcationPlugin(Component):
 
     def notify(self, type, values):
         # values['type'] = type
-        values['author'] = re.sub(r' <.*', '', values['author'])
         # template = '%(project)s/%(branch)s %(rev)s %(author)s: %(logmsg)s'
         # template = '%(project)s %(rev)s %(author)s: %(logmsg)s'
         template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s %(summary)s>: %(action)s by @%(author)s'
         # template = '_%(project)s_ :incoming_envelope: \n%(type)s <%(url)s|%(id)s>: %(summary)s [*%(action)s* by @%(author)s]'
 
-        try:
-            template += ' :' + self.emoji[values['action']] + ':'
-        except KeyError:
-            template += ' (' + values['action'] + ')'
+        values['author'] = re.sub(r' <.*', '', values['author'])
+        values['emoji'] = self.emoji.get(values['action'], 'incoming_envelope')
+	values['maybe_status'] = values['status'] + ' ' if values['action'] != values['status'] else ''
+        template = ':%(emoji)s: %(maybe_status)s<%(url)s|%(type)s %(id)s %(summary)s> %(action)s by @%(author)s'
 
+        if values['comment']:
+           template += '\n>%(comment)s'
+        
         # if values['description']:
         #     template += ' \nDescription: ```%(description)s```'
 
@@ -61,8 +64,6 @@ class SlackNotifcationPlugin(Component):
         # if values.get('changes', False):
         #     template += '\n:small_red_triangle: Changes: ```%(changes)s```'
 
-        if values['comment']:
-           template += ': %(comment)s'
 
         message = template % values
         data = {
