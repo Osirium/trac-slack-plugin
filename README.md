@@ -3,6 +3,16 @@
 Plugin to announce Trac changes in [Slack](https://slack.com/) service.
 
 
+## Shipping Changes
+
+    $ ssh osiriumbot@trac.osirium.net
+    trac$ cd trac-slack-plugin
+    trac$ git pull origin master
+    trac$ kill trac
+    trac$ cd ~/
+    trac$ ./trac
+
+
 ## Installation
 
 Requirements:
