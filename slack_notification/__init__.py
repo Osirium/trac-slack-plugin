@@ -25,6 +25,15 @@ def truncate(value, n):
 
 class SlackNotifcationPlugin(Component):
     implements(ITicketChangeListener)
+    emoji = {'closed':'heavy_check_mark',
+        'created':'pushpin',
+        'changed': 'pencil2',
+        'assigned': 'point_right',
+        'needsintegrating': 'arrow_heading_down',
+        'needstesting': 'passport_control',
+        'reopened': 'arrows_counterclockwise',
+        'testing': 'customs',
+        }
     webhook = Option('slack', 'webhook', 'https://hooks.slack.com/services/', doc="Incoming webhook for slack")
     channel = Option('slack', 'channel', '#Trac', doc="Channel name on slack")
     username = Option('slack', 'username', 'Trac-Bot', doc="Username of th bot on slack notify")
@@ -38,11 +47,10 @@ class SlackNotifcationPlugin(Component):
         template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s>: %(action)s by @%(author)s'
         # template = '_%(project)s_ :incoming_envelope: \n%(type)s <%(url)s|%(id)s>: %(summary)s [*%(action)s* by @%(author)s]'
 
-        if values['action'] == 'closed':
-            template += ' :white_check_mark:'
-
-        if values['action'] == 'created':
-            template += ' :pushpin:'
+        try:
+            template += ' :' + self.emoji[values['action']] + ':'
+        except KeyError:
+            template += ' (' + values['action'] + ')'
 
         # if values['description']:
         #     template += ' \nDescription: ```%(description)s```'
@@ -53,8 +61,8 @@ class SlackNotifcationPlugin(Component):
         # if values.get('changes', False):
         #     template += '\n:small_red_triangle: Changes: ```%(changes)s```'
 
-        if values['comment']:
-            template += ': %(comment)s'
+        # if values['comment']:
+        #    template += ': %(comment)s'
 
         message = template % values
         data = {
@@ -86,10 +94,11 @@ class SlackNotifcationPlugin(Component):
 
     def ticket_changed(self, ticket, comment, author, old_values):
         action = 'changed'
-        if 'status' in old_values:
-            if 'status' in ticket.values:
-                if ticket.values['status'] != old_values['status']:
-                    action = ticket.values['status']
+        try:
+            if ticket.values['status'] != old_values['status']:
+                action = ticket.values['status']
+        except KeyError:
+            pass
         values = prepare_ticket_values(ticket, action)
         comment = truncate(next(iter(filter(bool, map(string.strip, comment.splitlines()))), ''), 100)
         values.update({
