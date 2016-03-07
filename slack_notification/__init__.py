@@ -37,7 +37,7 @@ class SlackNotifcationPlugin(Component):
         'needstesting': 'passport_control',
         'reopened': 'arrows_counterclockwise',
         'testing': 'customs',
-        }
+    }
     webhook = Option('slack', 'webhook',
                      'https://hooks.slack.com/services/',
                      doc="Incoming webhook for slack")
@@ -52,10 +52,12 @@ class SlackNotifcationPlugin(Component):
         values['emoji'] = self.emoji.get(values['action'],
                                          'incoming_envelope')
         values['maybe_status'] = (
-                values['status'] + ' '
-                if values['action'] != values['status'] else '')
+            values['status'] + ' '
+            if values['action'] != values['status'] else ''
+        )
         values['maybe_owner'] = (
-                values['owner'] + u'\u2019s ' if values['owner'] else '')
+            values['owner'] + u'\u2019s ' if values['owner'] else ''
+        )
 
         template = (':%(emoji)s: %(maybe_owner)s%(maybe_status)s' +
                     '<%(url)s|%(type)s %(id)s %(summary)s> ' +
