@@ -7,6 +7,9 @@ from trac.config import Option
 from trac.ticket.api import ITicketChangeListener
 
 
+CONT = ' _etc._'
+
+
 def prepare_ticket_values(ticket, action=None):
     values = ticket.values.copy()
     values['id'] = "#" + str(ticket.id)
@@ -18,7 +21,6 @@ def prepare_ticket_values(ticket, action=None):
     return values
 
 
-CONT = ' _etc._'
 def truncate(value, n):
     value = unicode(value)
     return value if len(value) <= n else (value[:n - len(CONT)] + CONT)
@@ -26,8 +28,9 @@ def truncate(value, n):
 
 class SlackNotifcationPlugin(Component):
     implements(ITicketChangeListener)
-    emoji = {'closed':'heavy_check_mark',
-        'created':'pushpin',
+    emoji = {
+        'closed': 'heavy_check_mark',
+        'created': 'pushpin',
         'changed': 'pencil2',
         'assigned': 'point_right',
         'needsintegrating': 'arrow_heading_down',
@@ -35,36 +38,31 @@ class SlackNotifcationPlugin(Component):
         'reopened': 'arrows_counterclockwise',
         'testing': 'customs',
         }
-    webhook = Option('slack', 'webhook', 'https://hooks.slack.com/services/', doc="Incoming webhook for slack")
-    channel = Option('slack', 'channel', '#Trac', doc="Channel name on slack")
-    username = Option('slack', 'username', 'Trac-Bot', doc="Username of th bot on slack notify")
-    fields = Option('slack', 'fields', 'type,component,resolution', doc="Username of th bot on slack notify")
+    webhook = Option('slack', 'webhook',
+                     'https://hooks.slack.com/services/',
+                     doc="Incoming webhook for slack")
+    channel = Option('slack', 'channel',
+                     '#Trac', doc="Channel name on slack")
+    username = Option('slack', 'username',
+                      'Trac-Bot', doc="Username of the bot on slack notify")
+    fields = Option('slack', 'fields', 'type,component,resolution')
 
     def notify(self, type, values):
-        # values['type'] = type
-        # template = '%(project)s/%(branch)s %(rev)s %(author)s: %(logmsg)s'
-        # template = '%(project)s %(rev)s %(author)s: %(logmsg)s'
-        template = ':incoming_envelope: %(status)s/%(type)s <%(url)s|%(id)s %(summary)s>: %(action)s by @%(author)s'
-        # template = '_%(project)s_ :incoming_envelope: \n%(type)s <%(url)s|%(id)s>: %(summary)s [*%(action)s* by @%(author)s]'
-
         values['author'] = re.sub(r' <.*', '', values['author'])
-        values['emoji'] = self.emoji.get(values['action'], 'incoming_envelope')
-        values['maybe_status'] = values['status'] + ' ' if values['action'] != values['status'] else ''
-        values['maybe_owner'] = values['owner'] + u'\u2019s ' if values['owner'] else ''
-        template = ':%(emoji)s: %(maybe_owner)s%(maybe_status)s<%(url)s|%(type)s %(id)s %(summary)s> %(action)s by @%(author)s'
+        values['emoji'] = self.emoji.get(values['action'],
+                                         'incoming_envelope')
+        values['maybe_status'] = (
+                values['status'] + ' '
+                if values['action'] != values['status'] else '')
+        values['maybe_owner'] = (
+                values['owner'] + u'\u2019s ' if values['owner'] else '')
+
+        template = (':%(emoji)s: %(maybe_owner)s%(maybe_status)s' +
+                    '<%(url)s|%(type)s %(id)s %(summary)s> ' +
+                    '%(action)s by @%(author)s')
 
         if values['comment']:
-           template += '\n>%(comment)s'
-        
-        # if values['description']:
-        #     template += ' \nDescription: ```%(description)s```'
-
-        # if values['attrib']:
-        #     template += '\n```%(attrib)s```'
-
-        # if values.get('changes', False):
-        #     template += '\n:small_red_triangle: Changes: ```%(changes)s```'
-
+            template += '\n>%(comment)s'
 
         message = template % values
         data = {
@@ -102,7 +100,8 @@ class SlackNotifcationPlugin(Component):
         except KeyError:
             pass
         values = prepare_ticket_values(ticket, action)
-        comment = truncate(next(iter(filter(bool, map(string.strip, comment.splitlines()))), ''), 100)
+        comment = truncate(next(iter(filter(bool, map(string.strip,
+                                comment.splitlines()))), ''), 100)
         values.update({
             'comment': comment or '',
             'author': author or '',
@@ -121,7 +120,8 @@ class SlackNotifcationPlugin(Component):
                 attrib.append('  * %s: %s' % (field, ticket[field]))
 
             if field in old_values.keys():
-                changes.append('  * %s: %s => %s' % (field, old_values[field], ticket[field]))
+                changes.append('  * %s: %s => %s' %
+                               (field, old_values[field], ticket[field]))
 
         values['attrib'] = "\n".join(attrib) or ''
         values['changes'] = "\n".join(changes) or ''
