@@ -49,8 +49,8 @@ class SlackNotifcationPlugin(Component):
 
         values['author'] = re.sub(r' <.*', '', values['author'])
         values['emoji'] = self.emoji.get(values['action'], 'incoming_envelope')
-	values['maybe_status'] = values['status'] + ' ' if values['action'] != values['status'] else ''
-	values['maybe_owner'] = values['owner'] + u'\u2019s ' if values['owner'] else ''
+        values['maybe_status'] = values['status'] + ' ' if values['action'] != values['status'] else ''
+        values['maybe_owner'] = values['owner'] + u'\u2019s ' if values['owner'] else ''
         template = ':%(emoji)s: %(maybe_owner)s%(maybe_status)s<%(url)s|%(type)s %(id)s %(summary)s> %(action)s by @%(author)s'
 
         if values['comment']:
