@@ -98,7 +98,7 @@ class SlackNotifcationPlugin(Component):
         action = 'changed'
         try:
             if ticket.values['status'] != old_values['status']:
-                action = ticket.values['status']
+                action = 'moved to ' + ticket.values['status']
         except KeyError:
             pass
         values = prepare_ticket_values(ticket, action)
