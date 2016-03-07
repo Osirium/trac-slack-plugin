@@ -59,12 +59,14 @@ class SlackNotifcationPlugin(Component):
             values['owner'] + u'\u2019s ' if values['owner'] else ''
         )
 
-        template = (':%(emoji)s: %(maybe_owner)s%(maybe_status)s' +
-                    '<%(url)s|%(type)s %(id)s %(summary)s> ' +
-                    '%(action)s by @%(author)s')
-
-        if values['comment']:
-            template += '\n>%(comment)s'
+        if values['action'] == 'created':
+            values['ticket_link'] = '<%(url)s|%(type)s %(id)s %(summary)s>'
+            template = ':%(emoji)s: %(ticket_link)s created by @%(author)s'
+        else:
+            values['ticket_link'] = '<%(url)s|%(id)s>'
+            template = ':%(emoji)s: %(maybe_owner)s%(maybe_status)s %(ticket_link)s %(action)s by @%(author)s'
+            if values['comment']:
+                template += ': %(comment)s'
 
         message = template % values
         data = {
