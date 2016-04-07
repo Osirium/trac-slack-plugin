@@ -1,3 +1,4 @@
+import threading
 import json
 import string
 import requests
@@ -73,11 +74,21 @@ class SlackNotifcationPlugin(Component):
             "text": message.encode('utf-8').strip()
         }
 
-        try:
-            requests.post(self.webhook, data={"payload": json.dumps(data)})
-        except requests.exceptions.RequestException:
-            return False
+        self._send(data)
         return True
+
+    def _send(self, data):
+        def send():
+            try:
+                requests.post(self.webhook, data={"payload": json.dumps(data)})
+            except requests.exceptions.RequestException:
+                self.env.log.exception("Failed to send ticket details")
+                return False
+            return True
+        thread = threading.Thread(target=send)
+        thread.daemon = True
+        thread.name = 'Slack Notifier'
+        thread.start()
 
     def ticket_created(self, ticket):
         values = prepare_ticket_values(ticket, 'created')
