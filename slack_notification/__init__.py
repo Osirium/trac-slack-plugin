@@ -139,6 +139,9 @@ class SlackNotifcationPlugin(Component):
         values['attrib'] = "\n".join(attrib) or ''
         values['changes'] = "\n".join(changes) or ''
 
+        values['owner'] = old_values['owner']
+        values['status'] = old_values['status']
+
         self.notify('ticket', values)
 
     def ticket_deleted(self, ticket):
